@@ -1,5 +1,6 @@
 'use strict';
 const {Model} = require ('sequelize');
+const {UserProfile} = require ('./userprofile');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -9,6 +10,10 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
+      User.hasOne (models.UserProfile, {
+        foreignKey: 'userId',
+        as: 'profile',
+      });
     }
   }
   User.init (
@@ -22,5 +27,12 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'users',
     }
   );
+
+  User.hasOne (UserProfile, {
+    foreignKey: 'userId',
+    as: 'userProfile',
+  });
+
+  User.sync ({alter: true, force: true});
   return User;
 };
