@@ -1,38 +1,44 @@
-'use strict';
-const {Model} = require ('sequelize');
-const {UserProfile} = require ('./userprofile');
-module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
-    static associate (models) {
-      // define association here
-      User.hasOne (models.UserProfile, {
-        foreignKey: 'userId',
-        as: 'profile',
-      });
-    }
+const {Sequelize, Model, DataTypes} = require ('sequelize');
+const env = process.env.NODE_ENV || 'development';
+const config = require (__dirname + '/../config/config.json')[env];
+const UserProfile = require ('./userprofile');
+const sequelize = new Sequelize (
+  config.database,
+  config.username,
+  config.password,
+  {
+    host: config.host,
+    dialect: 'mysql',
   }
-  User.init (
-    {
-      username: DataTypes.STRING,
-      password: DataTypes.STRING,
-    },
-    {
-      sequelize,
-      modelName: 'User',
-      tableName: 'users',
-    }
-  );
+);
 
-  User.hasOne (UserProfile, {
-    foreignKey: 'userId',
-    as: 'userProfile',
-  });
+class User extends Model {}
+User.init (
+  {
+    userName: DataTypes.STRING,
+    password: DataTypes.STRING,
+  },
+  {sequelize, modelName: 'user', tableName: 'users'}
+);
 
-  User.sync ({alter: true, force: true});
-  return User;
-};
+User.hasOne (UserProfile, {
+  foreignKey: 'userId',
+  as: 'profile',
+});
+
+UserProfile.belongsTo (User, {
+  foreignKey: 'userId',
+  as: 'user',
+});
+
+// Perform the database connection
+// sequelize
+//   .authenticate ()
+//   .then (() => {
+//     console.log ('Connected to the database.');
+//   })
+//   .catch (error => {
+//     console.error ('Unable to connect to the database:', error);
+//   });
+
+module.exports = User;
