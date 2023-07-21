@@ -1,27 +1,33 @@
 const redis = require ('redis');
 
-// Create a Redis client
+let redisPort = 6379; // Replace with your redis port
+let redisHost = '127.0.0.1'; // Replace with your redis host
 const client = redis.createClient ({
-  host: 'localhost', // Redis server address
-  port: 6379, // Redis server port
-  // If your Redis server requires authentication, add the following line:
-  // password: 'your_redis_password',
+  socket: {
+    port: redisPort,
+    host: redisHost,
+  },
 });
 
-// Check if the client is connected successfully
+(async () => {
+  // Connect to redis server
+  await client.connect ();
+}) ();
+
+console.log ('Attempting to connect to redis');
 client.on ('connect', () => {
-  console.log ('Connected to Redis server');
+  console.log ('Connected!');
 });
 
-// Handle Redis connection errors
+// Log any error that may occur to the console
 client.on ('error', err => {
-  console.error ('Error connecting to Redis:', err);
+  console.log (`Error:${err}`);
 });
 
-const getData = async key => {
-  return await client.get (key);
-};
+// Close the connection when there is an interrupt sent from keyboard
+process.on ('SIGINT', () => {
+  client.quit ();
+  console.log ('redis client quit');
+});
 
-module.exports = {
-  getData,
-};
+module.exports = client;

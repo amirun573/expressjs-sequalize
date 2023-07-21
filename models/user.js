@@ -2,6 +2,7 @@ const {Sequelize, Model, DataTypes} = require ('sequelize');
 const env = process.env.NODE_ENV || 'development';
 const config = require (__dirname + '/../config/config.json')[env];
 const UserProfile = require ('./userprofile');
+const Note = require ('./note');
 const sequelize = new Sequelize (
   config.database,
   config.username,
@@ -24,6 +25,11 @@ User.init (
 User.hasOne (UserProfile, {
   foreignKey: 'userId',
   as: 'userProfile',
+});
+
+User.hasOne (Note, {
+  foreignKey: 'userId',
+  as: 'notes',
 });
 
 UserProfile.belongsTo (User, {

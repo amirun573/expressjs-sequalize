@@ -14,35 +14,30 @@ class UserService {
       message: null,
     };
 
-    try {
-      const checkUserName = await this.getUserByUserName (userName);
+    const checkUserName = await this.getUserByUserName (userName);
 
-      if (checkUserName) {
-        throw new Error ('User Name already Exist.');
-      }
-      const encryptedPassword = await this.encryptPassword (password);
-      const saveUser = await User.create ({
-        userName,
-        password: encryptedPassword,
-      });
+    if (checkUserName) {
+      throw new Error ('User Name already Exist.');
+    }
+    const encryptedPassword = await this.encryptPassword (password);
+    const saveUser = await User.create ({
+      userName,
+      password: encryptedPassword,
+    });
 
-      if (!saveUser) {
-        throw new Error ('Cannot create User');
-      }
+    if (!saveUser) {
+      throw new Error ('Cannot create User');
+    }
 
-      const saveUserProfile = await UserProfile.create ({
-        firstName,
-        lastName,
-        email,
-        userId: saveUser.id,
-      });
+    const saveUserProfile = await UserProfile.create ({
+      firstName,
+      lastName,
+      email,
+      userId: saveUser.id,
+    });
 
-      if (!saveUserProfile) {
-        throw new Error ('Cannot Create User Profile');
-      }
-    } catch (error) {
-      response.status = false;
-      response.message = error;
+    if (!saveUserProfile) {
+      throw new Error ('Cannot Create User Profile');
     }
 
     return response;

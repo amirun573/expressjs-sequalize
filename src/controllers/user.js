@@ -3,10 +3,6 @@ const redis = require ('../services/redis');
 const UserService = require ('../services/user');
 
 const userService = new UserService ();
-let response = {
-  statusCode: 200,
-  message: 'Success',
-};
 
 class UserController {
   constructor () {}
@@ -26,24 +22,23 @@ class UserController {
 
       if (error) {
         // Validation failed, send an error response
-        response.statusCode = 400;
-        response.message = error.message;
-        throw response;
+        throw error;
       }
 
       const saveUser = await userService.createUser (value);
 
       if (!saveUser.status) {
-        response.message = 'Cannot create User';
-
-        throw response;
+        throw new Error ('Cannot Create User');
       }
-      return response;
+      return res.status (200).send ({message: 'User Successfully Created.'});
     } catch (error) {
-      response.statusCode = 400;
-      response.message = JSON.stringify (error);
+      return (
+        res
+          .status (error.statusCode ? error.statusCode : 400)
+          //.json (error ? error : 'Having Problem')
+          .send ({message: error.message})
+      );
     }
-    return response;
   }
 
   async loginUser (req, res) {
@@ -58,9 +53,7 @@ class UserController {
 
       if (error) {
         // Validation failed, send an error response
-        response.statusCode = 400;
-        response.message = error.message;
-        throw response;
+        throw error;
       }
 
       const {userName, password} = value;
@@ -68,9 +61,7 @@ class UserController {
       const user = await userService.getUserByUserName (userName);
 
       if (!user) {
-        response.statusCode = 400;
-        response.message = 'User Not Found';
-        throw response;
+        throw new Error ('No User Found.');
       }
 
       const encryptedPassword = await userService.comparePassword (
@@ -79,9 +70,7 @@ class UserController {
       );
 
       if (!encryptedPassword) {
-        response.statusCode = 400;
-        response.message = 'Invalid Username/ Password';
-        throw response;
+        throw new Error ('Invalid Username/Password.');
       }
 
       const accessToken = await userService.generateJWTToken ({
@@ -95,18 +84,16 @@ class UserController {
         false
       );
 
-      response.message = {
-        accessToken,
-        refreshToken,
-      };
-
-      return response;
+      return res.status (200).send ({accessToken, refreshToken});
     } catch (error) {
-      return response;
+      return (
+        res
+          .status (error.statusCode ? error.statusCode : 400)
+          //.json (error ? error : 'Having Problem')
+          .send ({message: error.message})
+      );
     }
   }
-
-  
 }
 
 module.exports = UserController;
