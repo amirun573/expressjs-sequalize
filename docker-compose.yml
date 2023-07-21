@@ -14,12 +14,23 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: 
+      MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: respondio
       MYSQL_USER: root
-      MYSQL_PASSWORD: 
+      MYSQL_PASSWORD: password
     volumes:
       - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+  nodejs:
+    build:
+      context: .  # Path to your Node.js app Dockerfile
+    container_name: my-nodejs
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - mysql
     restart: unless-stopped
 
 volumes:

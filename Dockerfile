@@ -10,12 +10,6 @@ COPY package*.json ./
 # Install application dependencies
 RUN npm install
 
-# Copy Sequelize CLI configuration file
-COPY .sequelizerc .
-
-# Initialize Sequelize project
-RUN npx sequelize-cli init
-
 # Copy the rest of the application files to the working directory
 COPY . .
 

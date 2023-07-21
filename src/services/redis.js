@@ -1,7 +1,7 @@
 const redis = require ('redis');
 
 let redisPort = 6379; // Replace with your redis port
-let redisHost = 'localhost'; // Replace with your redis host
+let redisHost = '172.29.16.1'; // Replace with your redis host
 const client = redis.createClient ({
   socket: {
     port: redisPort,
