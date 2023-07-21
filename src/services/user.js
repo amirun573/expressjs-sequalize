@@ -9,7 +9,17 @@ class UserService {
   constructor () {}
 
   async createUser({firstName, lastName, email, userName, password}) {
+    const response = {
+      status: true,
+      message: null,
+    };
+
     try {
+      const checkUserName = await this.getUserByUserName (userName);
+
+      if (checkUserName) {
+        throw new Error ('User Name already Exist.');
+      }
       const encryptedPassword = await this.encryptPassword (password);
       const saveUser = await User.create ({
         userName,
@@ -30,8 +40,31 @@ class UserService {
       if (!saveUserProfile) {
         throw new Error ('Cannot Create User Profile');
       }
+    } catch (error) {
+      response.status = false;
+      response.message = error;
+    }
 
-      return true;
+    return response;
+  }
+
+  async getUserByUserName (userName) {
+    try {
+      const user = await User.findOne ({
+        where: {
+          userName,
+        },
+        include: {
+          model: UserProfile,
+          as: 'userProfile',
+        },
+      });
+
+      if (!user) {
+        throw new Error ('User Not Found');
+      }
+
+      return user;
     } catch (error) {
       return false;
     }
@@ -46,6 +79,63 @@ class UserService {
       return hash;
     } catch (error) {
       throw new Error ('Error encrypting password');
+    }
+  }
+
+  async comparePassword (plainPassword, hashedPassword) {
+    try {
+      return await bcrypt.compare (plainPassword, hashedPassword);
+    } catch (error) {
+      throw new Error ('Error comparing passwords');
+    }
+  }
+
+  async generateJWTToken (payload, expired = true) {
+    let token = null;
+    try {
+      if (expired) {
+        token = jwt.sign (payload, process.env.secret_key_auth, {
+          expiresIn: '1h',
+          algorithm: 'HS256',
+        });
+      } else {
+        token = jwt.sign (payload, process.env.secret_key_auth, {
+          algorithm: 'HS256',
+        });
+      }
+    } catch (error) {
+      console.log ('error==>', error);
+    }
+
+    return token;
+  }
+
+  async validateToken (authorization) {
+    try {
+      const bearerToken = split (authorization, ' ');
+
+      if (bearerToken.length != 2) {
+        throw {
+          message: 'Not Bearer Token Format.',
+        };
+      }
+
+      const secretKey = process.env.secret_key_auth;
+      const token = bearerToken[1];
+
+      const verify = jwt.verify (token, secretKey, (err, decoded) => {
+        if (err) {
+          // Token verification failed
+          return false;
+        } else {
+          // Token is valid
+          return decoded;
+        }
+      });
+
+      return verify;
+    } catch (error) {
+      return error;
     }
   }
 }

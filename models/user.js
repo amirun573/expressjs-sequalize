@@ -23,7 +23,7 @@ User.init (
 
 User.hasOne (UserProfile, {
   foreignKey: 'userId',
-  as: 'profile',
+  as: 'userProfile',
 });
 
 UserProfile.belongsTo (User, {
